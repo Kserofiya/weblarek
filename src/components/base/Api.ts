@@ -15,20 +15,26 @@ export class Api {
     }
 
     protected handleResponse<T>(response: Response): Promise<T> {
-        if (response.ok) return response.json();
-        else return response.json()
-            .then(data => Promise.reject(data.error ?? response.statusText));
+        if (response.ok) {
+            return response.json();
+        } else {
+            return response.json()
+                .then(data => Promise.reject(data.error ?? response.statusText))
+                .catch(() => Promise.reject(response.statusText));
+        }
     }
 
     get<T extends object>(uri: string) {
-        return fetch(this.baseUrl + uri, {
+        const fullUrl = this.baseUrl + uri;
+        return fetch(fullUrl, {
             ...this.options,
             method: 'GET'
         }).then(this.handleResponse<T>);
     }
 
     post<T extends object>(uri: string, data: object, method: ApiPostMethods = 'POST') {
-        return fetch(this.baseUrl + uri, {
+        const fullUrl = this.baseUrl + uri;
+        return fetch(fullUrl, {
             ...this.options,
             method,
             body: JSON.stringify(data)
