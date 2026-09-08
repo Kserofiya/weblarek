@@ -7,10 +7,13 @@ import { Buyer } from './components/models/Buyer';
 
 // Импорт для работы с API
 import { Api } from './components/base/Api';
-import { AppApi } from './components/models/AppApi';
+import { AppApi } from './components/AppApi';
 
 // Импорт констант
 import { API_URL } from './utils/constants';
+
+// Импорт моковых данных
+import { apiProducts } from './utils/data';
 
 // ============================================
 // 1. НАСТРОЙКА API
@@ -30,178 +33,137 @@ const basketModel = new Basket();
 const buyerModel = new Buyer();
 
 // ============================================
-// 3. ЗАГРУЗКА ДАННЫХ С СЕРВЕРА
+// 3. ТЕСТИРОВАНИЕ МОДЕЛЕЙ С МОКОВЫМИ ДАННЫМИ
+// ============================================
+
+console.log('\n' + '='.repeat(60));
+console.log('ТЕСТИРОВАНИЕ МОДЕЛИ КАТАЛОГА (моковые данные)');
+console.log('='.repeat(60));
+
+// Устанавливаем моковые данные
+productsModel.setItems(apiProducts.items);
+console.log('setItems() - моковые данные сохранены');
+
+// Проверяем getItems()
+console.log('getItems() - товары в каталоге:', productsModel.getItems());
+console.log(`getItems() - всего товаров: ${productsModel.getItems().length}`);
+
+// Проверяем getProductById()
+const testProduct = productsModel.getProductById(apiProducts.items[0].id);
+console.log(`getProductById() - товар с ID "${apiProducts.items[0].id}":`, testProduct);
+
+// Проверяем getProductById() с несуществующим ID
+const unknownProduct = productsModel.getProductById('non-existent-id');
+console.log('getProductById() - несуществующий ID:', unknownProduct);
+
+// Проверяем setSelectedProduct() и getSelectedProduct()
+productsModel.setSelectedProduct(apiProducts.items[0]);
+console.log('setSelectedProduct() - выбран товар:', productsModel.getSelectedProduct());
+
+
+console.log('\n' + '='.repeat(60));
+console.log('ТЕСТИРОВАНИЕ МОДЕЛИ КОРЗИНЫ (моковые данные)');
+console.log('='.repeat(60));
+
+// Проверяем начальное состояние
+console.log('getItems() - корзина пуста:', basketModel.getItems());
+console.log(`getCount() - товаров в корзине: ${basketModel.getCount()}`);
+console.log(`getTotalPrice() - стоимость: ${basketModel.getTotalPrice()} ₽`);
+
+// Добавляем товар в корзину
+const productForBasket = apiProducts.items[0];
+basketModel.addItem(productForBasket);
+console.log(`addItem() - добавлен товар: "${productForBasket.title}"`);
+console.log('getItems() - товары в корзине:', basketModel.getItems());
+console.log(`getCount() - товаров в корзине: ${basketModel.getCount()}`);
+console.log(`getTotalPrice() - стоимость: ${basketModel.getTotalPrice()} ₽`);
+
+// Проверяем isProductInBasket()
+console.log(`isProductInBasket() - товар "${productForBasket.title}" в корзине: ${basketModel.isProductInBasket(productForBasket.id) ? 'Да' : 'Нет'}`);
+console.log(`isProductInBasket() - несуществующий товар в корзине: ${basketModel.isProductInBasket('non-existent-id') ? 'Да' : 'Нет'}`);
+
+// Удаляем товар
+basketModel.removeItem(productForBasket.id);
+console.log(`removeItem() - удален товар: "${productForBasket.title}"`);
+console.log(`getCount() - товаров в корзине: ${basketModel.getCount()}`);
+console.log(`getTotalPrice() - стоимость: ${basketModel.getTotalPrice()} ₽`);
+
+// Проверяем clear()
+basketModel.addItem(productForBasket);
+basketModel.clear();
+console.log('clear() - корзина очищена');
+console.log(`getCount() - товаров в корзине: ${basketModel.getCount()}`);
+
+
+console.log('\n' + '='.repeat(60));
+console.log('ТЕСТИРОВАНИЕ МОДЕЛИ ПОКУПАТЕЛЯ (моковые данные)');
+console.log('='.repeat(60));
+
+// Проверяем начальное состояние
+console.log('getData() - начальное состояние:', buyerModel.getData());
+
+// Проверяем validate() с пустыми данными
+console.log('validate() - ошибки при пустых данных:', buyerModel.validate());
+
+// Устанавливаем данные
+buyerModel.setPayment('card');
+buyerModel.setAddress('Москва, ул. Тверская, 1');
+buyerModel.setEmail('test@mail.ru');
+buyerModel.setPhone('+79991234567');
+console.log('setPayment(), setAddress(), setEmail(), setPhone() - данные сохранены');
+
+// Проверяем getData()
+console.log('getData() - данные покупателя:', buyerModel.getData());
+
+// Проверяем validate() с заполненными данными
+console.log('validate() - ошибок нет:', buyerModel.validate());
+
+// Проверяем частичное обновление
+buyerModel.setAddress('Санкт-Петербург, Невский пр., 10');
+console.log('setAddress() - адрес обновлен');
+console.log('getData() - данные покупателя после обновления адреса:', buyerModel.getData());
+
+// Проверяем clear()
+buyerModel.clear();
+console.log('clear() - данные очищены');
+console.log('getData() - после очистки:', buyerModel.getData());
+console.log('validate() - ошибки после очистки:', buyerModel.validate());
+
+
+// ============================================
+// 4. ЗАПРОС К СЕРВЕРУ (getProducts)
 // ============================================
 
 console.log('\n' + '='.repeat(60));
 console.log('ЗАГРУЗКА ДАННЫХ С СЕРВЕРА');
 console.log('='.repeat(60));
 
+// Запрос к серверу через AppApi
 appApi.getProducts()
     .then(data => {
+        // Сохраняем данные в модель
+        productsModel.setItems(data.items);
+        
+        // Выводим результат в консоль
         console.log('GET /product - запрос выполнен успешно');
         console.log(`Получено ${data.total} товаров с сервера`);
-        console.log(`Первый товар: "${data.items[0]?.title}" (${data.items[0]?.price} ₽)`);
-        
-        // Сохранение в модель
-        productsModel.setItems(data.items);
-        console.log(`setItems() - данные сохранены в модель`);
-        console.log(`getItems() - в каталоге ${productsModel.getItems().length} товаров`);
-        
-        // ============================================
-        // 4. ТЕСТИРОВАНИЕ МОДЕЛИ КАТАЛОГА
-        // ============================================
-        
-        console.log('\n' + '='.repeat(60));
-        console.log('ТЕСТИРОВАНИЕ МОДЕЛИ КАТАЛОГА');
-        console.log('='.repeat(60));
-        
-        const firstProduct = productsModel.getItems()[0];
-        
-        // Проверка getItems
-        console.log(`getItems() - в каталоге ${productsModel.getItems().length} товаров`);
-        
-        // Проверка getProductById
-        if (firstProduct) {
-            const found = productsModel.getProductById(firstProduct.id);
-            console.log(`getProductById() - найден товар: "${found?.title}"`);
-        }
-        
-        // Проверка getProductById с несуществующим ID
-        const unknownProduct = productsModel.getProductById('non-existent-id');
-        console.log(`getProductById() - несуществующий товар: ${unknownProduct || 'undefined'}`);
-        
-        // Проверка setSelectedProduct и getSelectedProduct
-        if (firstProduct) {
-            productsModel.setSelectedProduct(firstProduct);
-            console.log(`setSelectedProduct() - выбран товар: "${productsModel.getSelectedProduct()?.title}"`);
-        }
-        console.log(`getSelectedProduct() - текущий выбранный товар: "${productsModel.getSelectedProduct()?.title || 'null'}"`);
-        
-        // ============================================
-        // 5. ТЕСТИРОВАНИЕ МОДЕЛИ КОРЗИНЫ
-        // ============================================
-        
-        console.log('\n' + '='.repeat(60));
-        console.log('ТЕСТИРОВАНИЕ МОДЕЛИ КОРЗИНЫ');
-        console.log('='.repeat(60));
-        
-        // Проверка начального состояния
-        console.log(`getItems() - корзина пуста: ${basketModel.getCount() === 0 ? 'Да' : 'Нет'}`);
-        console.log(`getTotalPrice() - стоимость: ${basketModel.getTotalPrice()} ₽`);
-        
-        // Проверка isProductInBasket (без товаров)
-        console.log(`isProductInBasket() - без товаров: ${basketModel.isProductInBasket('any-id') ? 'Да' : 'Нет'}`);
-        
-        // Добавление товара в корзину
-        if (firstProduct) {
-            basketModel.addItem(firstProduct);
-            console.log(`addItem() - добавлен товар: "${firstProduct.title}"`);
-            console.log(`getItems() - в корзине ${basketModel.getCount()} товаров`);
-            console.log(`getTotalPrice() - стоимость: ${basketModel.getTotalPrice()} ₽`);
-            console.log(`isProductInBasket() - товар в корзине: ${basketModel.isProductInBasket(firstProduct.id) ? 'Да' : 'Нет'}`);
-        }
-        
-        // Удаление товара
-        if (firstProduct) {
-            basketModel.removeItem(firstProduct.id);
-            console.log(`removeItem() - товар удален, в корзине ${basketModel.getCount()} товаров`);
-        }
-        
-        // Проверка clear
-        if (firstProduct) {
-            basketModel.addItem(firstProduct);
-            basketModel.clear();
-            console.log(`clear() - корзина очищена, товаров: ${basketModel.getCount()}`);
-        }
-        
-        // ============================================
-        // 6. ТЕСТИРОВАНИЕ МОДЕЛИ ПОКУПАТЕЛЯ
-        // ============================================
-        
-        console.log('\n' + '='.repeat(60));
-        console.log('ТЕСТИРОВАНИЕ МОДЕЛИ ПОКУПАТЕЛЯ');
-        console.log('='.repeat(60));
-        
-        // Проверка начального состояния
-        console.log(`getData() - начальное состояние:`, buyerModel.getData());
-        console.log(`validate() - ошибки при пустых данных:`, buyerModel.validate());
-        
-        // Проверка set методов
-        buyerModel.setPayment('card');
-        buyerModel.setAddress('Москва, ул. Тверская, 1');
-        buyerModel.setEmail('test@mail.ru');
-        buyerModel.setPhone('+79991234567');
-        console.log('setPayment(), setAddress(), setEmail(), setPhone() - данные сохранены');
-        
-        // Проверка getData
-        console.log('getData() - данные покупателя:', buyerModel.getData());
-        
-        // Проверка validate (без ошибок)
-        const validResult = buyerModel.validate();
-        console.log(`validate() - ошибок нет: ${Object.keys(validResult).length === 0 ? 'Да' : 'Нет'}`);
-        
-        // Проверка clear
-        buyerModel.clear();
-        console.log('clear() - данные очищены');
-        console.log(`getData() после очистки:`, buyerModel.getData());
-        
-        // ============================================
-        // 7. ТЕСТ ОТПРАВКИ ЗАКАЗА (postOrder)
-        // ============================================
-
-        console.log('\n' + '='.repeat(60));
-        console.log('ТЕСТ ОТПРАВКИ ЗАКАЗА');
-        console.log('='.repeat(60));
-
-        // Добавляем товар в корзину для реального заказа
-        if (firstProduct) {
-            basketModel.addItem(firstProduct);
-            console.log(`Добавлен товар в корзину для заказа: "${firstProduct.title}"`);
-            console.log(`В корзине ${basketModel.getCount()} товаров на сумму ${basketModel.getTotalPrice()} ₽`);
-        }
-
-        const orderData = {
-            payment: 'card' as const,
-            email: 'test@example.com',
-            phone: '+79991234567',
-            address: 'Москва, ул. Тверская, д. 1',
-            total: basketModel.getTotalPrice(),
-            items: basketModel.getItems().map(item => item.id)
-        };
-
-        console.log('Данные заказа:', JSON.stringify(orderData, null, 2));
-
-        appApi.postOrder(orderData)
-            .then(orderResponse => {
-                console.log('POST /order - заказ отправлен успешно!');
-                console.log(`ID заказа: ${orderResponse.id}`);
-                console.log(`Сумма заказа: ${orderResponse.total} ₽`);
-                console.log('Ответ сервера:', orderResponse);
-                
-                // Очищаем корзину после успешного заказа
-                basketModel.clear();
-                console.log('Корзина очищена после заказа');
-            })
-            .catch(error => {
-                console.error('Ошибка отправки заказа:', error);
-                if (error && typeof error === 'object' && 'text' in error) {
-                    console.error('❌ Детали ошибки:', error);
-                }
-            });
-        
-        // ============================================
-        // 8. ИТОГОВЫЙ СТАТУС
-        // ============================================
-        
-        console.log('\n' + '='.repeat(60));
-        console.log('ИТОГОВЫЙ СТАТУС МОДЕЛЕЙ');
-        console.log('='.repeat(60));
-        console.log(`- Каталог: ${productsModel.getItems().length} товаров`);
-        console.log(`- Корзина: ${basketModel.getCount()} товаров`);
-        console.log(`- Покупатель: ${buyerModel.getData().email || 'Не заполнен'}`);
-        console.log('\nВСЕ ТЕСТЫ ПРОЙДЕНЫ УСПЕШНО!');
+        console.log('getItems() - массив товаров из модели:', productsModel.getItems());
+        console.log(`getItems() - всего товаров в каталоге: ${productsModel.getItems().length}`);
+        console.log(`Первый товар: "${productsModel.getItems()[0]?.title}" (${productsModel.getItems()[0]?.price} ₽)`);
     })
     .catch(error => {
         console.error('Ошибка загрузки с сервера:', error);
     });
+
+
+// ============================================
+// 5. ИТОГОВЫЙ СТАТУС (для наглядности)
+// ============================================
+
+console.log('\n' + '='.repeat(60));
+console.log('ИТОГОВЫЙ СТАТУС МОДЕЛЕЙ');
+console.log('='.repeat(60));
+console.log(`- Каталог: ${productsModel.getItems().length} товаров`);
+console.log(`- Корзина: ${basketModel.getCount()} товаров`);
+console.log(`- Покупатель: ${buyerModel.getData().email || 'Не заполнен'}`);
+console.log('\nВСЕ ТЕСТЫ ПРОЙДЕНЫ УСПЕШНО!');

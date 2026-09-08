@@ -8,9 +8,7 @@ export class Basket {
     }
 
     addItem(product: IProduct): void {
-        if (!this.isProductInBasket(product.id)) {
-            this._items.push(product);
-        }
+        this._items.push(product);
     }
 
     removeItem(productId: string): void {
