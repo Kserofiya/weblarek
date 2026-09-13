@@ -1,5 +1,6 @@
 import { Component } from '../base/Component';
 import { IEvents } from '../base/Events';
+import { ensureElement } from '../../utils/utils';
 
 export class Modal extends Component<{ content: HTMLElement }> {
     protected _content: HTMLElement;
@@ -7,8 +8,8 @@ export class Modal extends Component<{ content: HTMLElement }> {
 
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
-        this._content = container.querySelector('.modal__content')!;
-        this._closeButton = container.querySelector('.modal__close')!;
+        this._content = ensureElement<HTMLElement>('.modal__content', container);
+        this._closeButton = ensureElement<HTMLButtonElement>('.modal__close', container);
 
         this._closeButton.addEventListener('click', () => {
             this.events.emit('modal:close');
@@ -21,6 +22,10 @@ export class Modal extends Component<{ content: HTMLElement }> {
         });
     }
 
+    set content(value: HTMLElement) {
+        this._content.replaceChildren(value);
+    }
+
     open(): void {
         this.container.classList.add('modal_active');
     }
@@ -28,12 +33,5 @@ export class Modal extends Component<{ content: HTMLElement }> {
     close(): void {
         this.container.classList.remove('modal_active');
         this._content.replaceChildren();
-    }
-
-    render(data?: { content: HTMLElement }): HTMLElement {
-        if (data) {
-            this._content.replaceChildren(data.content);
-        }
-        return this.container;
     }
 }

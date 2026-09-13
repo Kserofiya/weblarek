@@ -1,35 +1,17 @@
-import { Component } from '../base/Component';
-import { IEvents } from '../base/Events';
+import { Card } from './Card';
 import { IProduct } from '../../types';
+import { ensureElement } from '../../utils/utils';
 
-export class CardBasket extends Component<IProduct & { index: number }> {
-    protected _title: HTMLElement;
-    protected _price: HTMLElement;
+export class CardBasket extends Card<IProduct & { index: number }> {
     protected _index: HTMLElement;
     protected _deleteButton: HTMLButtonElement;
 
-    constructor(container: HTMLElement, protected events: IEvents) {
+    constructor(container: HTMLElement, protected onDelete: () => void) {
         super(container);
-        this._title = container.querySelector('.card__title')!;
-        this._price = container.querySelector('.card__price')!;
-        this._index = container.querySelector('.basket__item-index')!;
-        this._deleteButton = container.querySelector('.basket__item-delete')!;
+        this._index = ensureElement<HTMLElement>('.basket__item-index', container);
+        this._deleteButton = ensureElement<HTMLButtonElement>('.basket__item-delete', container);
 
-        this._deleteButton.addEventListener('click', () => {
-            this.events.emit('basket:remove', { id: this.container.dataset.id });
-        });
-    }
-
-    set id(value: string) {
-        this.container.dataset.id = value;
-    }
-
-    set title(value: string) {
-        this._title.textContent = value;
-    }
-
-    set price(value: number | null) {
-        this._price.textContent = value ? `${value} синапсов` : 'Бесценно';
+        this._deleteButton.addEventListener('click', () => this.onDelete());
     }
 
     set index(value: number) {

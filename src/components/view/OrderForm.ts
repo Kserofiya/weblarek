@@ -1,6 +1,7 @@
 import { Form } from './Form';
 import { IEvents } from '../base/Events';
 import { TPayment } from '../../types';
+import { ensureElement } from '../../utils/utils';
 
 export class OrderForm extends Form<{ payment: TPayment | null; address: string }> {
     protected _cardButton: HTMLButtonElement;
@@ -9,9 +10,9 @@ export class OrderForm extends Form<{ payment: TPayment | null; address: string 
 
     constructor(container: HTMLFormElement, events: IEvents) {
         super(container, events);
-        this._cardButton = container.querySelector('button[name="card"]')!;
-        this._cashButton = container.querySelector('button[name="cash"]')!;
-        this._addressInput = container.querySelector('input[name="address"]')!;
+        this._cardButton = ensureElement<HTMLButtonElement>('button[name="card"]', container);
+        this._cashButton = ensureElement<HTMLButtonElement>('button[name="cash"]', container);
+        this._addressInput = ensureElement<HTMLInputElement>('input[name="address"]', container);
 
         this._cardButton.addEventListener('click', (e) => {
             e.preventDefault();

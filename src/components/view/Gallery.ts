@@ -5,10 +5,7 @@ export class Gallery extends Component<{ items: HTMLElement[] }> {
         super(container);
     }
 
-    render(data?: { items: HTMLElement[] }): HTMLElement {
-        if (data) {
-            this.container.replaceChildren(...data.items);
-        }
-        return this.container;
+    set items(value: HTMLElement[]) {
+        this.container.replaceChildren(...value);
     }
 }

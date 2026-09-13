@@ -22,7 +22,7 @@ export class Products {
 
     setSelectedProduct(product: IProduct): void {
         this._selectedProduct = product;
-        this.events.emit('product:selected', { product });
+        this.events.emit('product:selected');
     }
 
     getSelectedProduct(): IProduct | null {

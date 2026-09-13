@@ -1,5 +1,6 @@
 import { Form } from './Form';
 import { IEvents } from '../base/Events';
+import { ensureElement } from '../../utils/utils';
 
 export class ContactsForm extends Form<{ email: string; phone: string }> {
     protected _emailInput: HTMLInputElement;
@@ -7,8 +8,8 @@ export class ContactsForm extends Form<{ email: string; phone: string }> {
 
     constructor(container: HTMLFormElement, events: IEvents) {
         super(container, events);
-        this._emailInput = container.querySelector('input[name="email"]')!;
-        this._phoneInput = container.querySelector('input[name="phone"]')!;
+        this._emailInput = ensureElement<HTMLInputElement>('input[name="email"]', container);
+        this._phoneInput = ensureElement<HTMLInputElement>('input[name="phone"]', container);
 
         this._emailInput.addEventListener('input', () => {
             this.events.emit('contacts:email', { email: this._emailInput.value });
