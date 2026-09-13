@@ -1,5 +1,6 @@
 import { Component } from '../base/Component';
 import { IEvents } from '../base/Events';
+import { ensureElement } from '../../utils/utils';
 
 export abstract class Form<T> extends Component<T & { valid: boolean; errors: string[] }> {
     protected _submitButton: HTMLButtonElement;
@@ -7,8 +8,8 @@ export abstract class Form<T> extends Component<T & { valid: boolean; errors: st
 
     constructor(protected container: HTMLFormElement, protected events: IEvents) {
         super(container);
-        this._submitButton = container.querySelector('button[type="submit"]')!;
-        this._errors = container.querySelector('.form__errors')!;
+        this._submitButton = ensureElement<HTMLButtonElement>('button[type="submit"]', container);
+        this._errors = ensureElement<HTMLElement>('.form__errors', container);
     }
 
     set valid(value: boolean) {

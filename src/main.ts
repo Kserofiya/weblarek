@@ -21,7 +21,7 @@ import { OrderForm } from './components/view/OrderForm';
 import { ContactsForm } from './components/view/ContactsForm';
 import { BasketView } from './components/view/BasketView';
 import { SuccessView } from './components/view/SuccessView';
-import { IProduct, TPayment } from './types';
+import { IProduct, IOrder, TPayment } from './types';
 
 // ============================================
 // 1. НАСТРОЙКА API И СОЗДАНИЕ МОДЕЛЕЙ
@@ -34,10 +34,6 @@ const events = new EventEmitter();
 const productsModel = new Products(events);
 const basketModel = new Basket(events);
 const buyerModel = new Buyer(events);
-
-// Приводим модели в исходное состояние
-basketModel.clear();
-buyerModel.clear();
 
 // ============================================
 // 2. ПОИСК ЭЛЕМЕНТОВ РАЗМЕТКИ
@@ -58,7 +54,7 @@ const modal = new Modal(modalContainer, events);
 // Статичные компоненты — создаются один раз
 const cardPreview = new CardPreview(
     cloneTemplate<HTMLElement>('#card-preview'),
-    () => events.emit('card:action')
+    events
 );
 
 const basketView = new BasketView(
@@ -92,7 +88,7 @@ function createCardCatalog(product: IProduct): HTMLElement {
     );
     return card.render({
         ...product,
-        image: `${CDN_URL}${product.image}`
+        image: { src: `${CDN_URL}${product.image}`, alt: product.title }
     });
 }
 
@@ -103,12 +99,10 @@ function createCardBasket(product: IProduct, index: number): HTMLElement {
     );
     return card.render({
         ...product,
-        index,
-        image: `${CDN_URL}${product.image}`
+        index
     });
 }
 
-// Получение ошибок по ключам
 function getOrderErrors(): string[] {
     const errors = buyerModel.validate();
     const result: string[] = [];
@@ -150,7 +144,7 @@ events.on('product:selected', () => {
     modal.render({
         content: cardPreview.render({
             ...product,
-            image: `${CDN_URL}${product.image}`,
+            image: { src: `${CDN_URL}${product.image}`, alt: product.title },
             buttonText,
             buttonDisabled
         })
@@ -245,10 +239,12 @@ events.on('order:submit', () => {
 });
 
 events.on('contacts:submit', () => {
-    const buyerData = buyerModel.getData();
-    const orderData = {
-        ...buyerData,
-        payment: buyerData.payment!,
+    const { payment, ...rest } = buyerModel.getData();
+    if (payment === null) return;
+
+    const orderData: IOrder = {
+        ...rest,
+        payment,
         total: basketModel.getTotalPrice(),
         items: basketModel.getItems().map(item => item.id)
     };
@@ -273,7 +269,14 @@ events.on('modal:close', () => {
 });
 
 // ============================================
-// 7. ЗАГРУЗКА ДАННЫХ С СЕРВЕРА
+// 7. ПРИВЕДЕНИЕ МОДЕЛЕЙ В ИСХОДНОЕ СОСТОЯНИЕ
+// ============================================
+
+basketModel.clear();
+buyerModel.clear();
+
+// ============================================
+// 8. ЗАГРУЗКА ДАННЫХ С СЕРВЕРА
 // ============================================
 
 appApi.getProducts()

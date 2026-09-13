@@ -9,12 +9,10 @@ export class AppApi {
     }
 
     getProducts(): Promise<IProductListResponse> {
-        console.log('AppApi: запрос товаров');
         return this._api.get<IProductListResponse>('/product');
     }
 
     postOrder(order: IOrder): Promise<IOrderResponse> {
-        console.log('AppApi: отправка заказа', order);
         return this._api.post<IOrderResponse>('/order', order);
     }
 }
