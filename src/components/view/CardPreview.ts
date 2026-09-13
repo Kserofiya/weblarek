@@ -1,16 +1,17 @@
-import { Card } from './Card';
-import { IProduct } from '../../types';
+import { Card, ICard } from './Card';
 import { IEvents } from '../base/Events';
 import { categoryMap } from '../../utils/constants';
 import { ensureElement } from '../../utils/utils';
 
-type CardPreviewState = Omit<IProduct, 'image'> & {
+export interface ICardPreview extends ICard {
+    category: string;
     image: { src: string; alt: string };
+    description: string;
     buttonText: string;
     buttonDisabled: boolean;
-};
+}
 
-export class CardPreview extends Card<CardPreviewState> {
+export class CardPreview extends Card<ICardPreview> {
     protected _category: HTMLElement;
     protected _image: HTMLImageElement;
     protected _description: HTMLElement;

@@ -1,8 +1,11 @@
-import { Card } from './Card';
-import { IProduct } from '../../types';
+import { Card, ICard } from './Card';
 import { ensureElement } from '../../utils/utils';
 
-export class CardBasket extends Card<IProduct & { index: number }> {
+export interface ICardBasket extends ICard {
+    index: number;
+}
+
+export class CardBasket extends Card<ICardBasket> {
     protected _index: HTMLElement;
     protected _deleteButton: HTMLButtonElement;
 

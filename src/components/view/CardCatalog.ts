@@ -1,13 +1,13 @@
-import { Card } from './Card';
-import { IProduct } from '../../types';
+import { Card, ICard } from './Card';
 import { categoryMap } from '../../utils/constants';
 import { ensureElement } from '../../utils/utils';
 
-type CardCatalogState = Omit<IProduct, 'image'> & {
+export interface ICardCatalog extends ICard {
+    category: string;
     image: { src: string; alt: string };
-};
+}
 
-export class CardCatalog extends Card<CardCatalogState> {
+export class CardCatalog extends Card<ICardCatalog> {
     protected _category: HTMLElement;
     protected _image: HTMLImageElement;
 

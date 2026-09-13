@@ -87,7 +87,9 @@ function createCardCatalog(product: IProduct): HTMLElement {
         () => events.emit('card:select', { id: product.id })
     );
     return card.render({
-        ...product,
+        title: product.title,
+        price: product.price,
+        category: product.category,
         image: { src: `${CDN_URL}${product.image}`, alt: product.title }
     });
 }
@@ -98,7 +100,8 @@ function createCardBasket(product: IProduct, index: number): HTMLElement {
         () => events.emit('basket:remove', { id: product.id })
     );
     return card.render({
-        ...product,
+        title: product.title,
+        price: product.price,
         index
     });
 }
@@ -143,8 +146,11 @@ events.on('product:selected', () => {
 
     modal.render({
         content: cardPreview.render({
-            ...product,
+            title: product.title,
+            price: product.price,
+            category: product.category,
             image: { src: `${CDN_URL}${product.image}`, alt: product.title },
+            description: product.description,
             buttonText,
             buttonDisabled
         })
